@@ -96,7 +96,7 @@ subroutine matvec(A,x,y)                                                   !
     y = 0.d0
     do j=1,A%cols
         do i=1,A%rows
-            y(i) = y(i)+A%val(i,j)*x(j)
+            y(i) = y(i)+A%vals(i,j)*x(j)
         enddo
     enddo
 

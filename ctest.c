@@ -2,12 +2,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
 
 int main(int *argc, char *argv) {
 
     // Initialize the matrix
     void *a_ptr;
-    a_ptr = c_init(10,10);
+    c_matrix(&a_ptr);
+    c_setup(&a_ptr,10,10);
 
 
     // Check that the values of the matrix entries are all zero

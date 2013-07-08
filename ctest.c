@@ -7,7 +7,7 @@ int main(int *argc, char *argv) {
 
     // Initialize the matrix
     void *a_ptr;
-    c_init(&a_ptr,10,10);
+    a_ptr = c_init(10,10);
 
 
     // Check that the values of the matrix entries are all zero

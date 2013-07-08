@@ -105,18 +105,18 @@ end subroutine matvec
 
 
 !--------------------------------------------------------------------------!
-subroutine c_init(a_ptr,rows,cols) bind(c)                                 !
+function c_init(rows,cols) bind(c)                                         !
 !--------------------------------------------------------------------------!
     implicit none
-    type(c_ptr), intent(out) :: a_ptr
+    type(c_ptr) :: c_init
     integer(c_int), intent(in), value :: rows,cols
     type(matrix), pointer :: A
 
     allocate(A)
     A = init(rows,cols)
-    a_ptr = c_loc(A)
+    c_init = c_loc(A)
 
-end subroutine c_init
+end function c_init
 
 
 

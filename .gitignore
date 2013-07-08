@@ -1,0 +1,26 @@
+# GitHub C.gitignore #
+######################
+
+# OS Generated Files
+*~
+.DS_Store*
+Icon?
+Thumbs.db
+
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app

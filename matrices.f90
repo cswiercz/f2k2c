@@ -26,19 +26,19 @@ contains
 
 
 !--------------------------------------------------------------------------!
-function init(rows,cols)                                                   !
+subroutine setup(A,rows,cols)                                              !
 !--------------------------------------------------------------------------!
     implicit none
-    type(matrix) :: init
+    type(matrix), intent(inout) :: A
     integer, intent(in) :: rows,cols
 
-    init%rows = rows
-    init%cols = cols
+    A%rows = rows
+    A%cols = cols
 
-    allocate(init%vals(rows,cols))
-    init%vals = 0.d0
+    allocate(A%vals(rows,cols))
+    A%vals = 0.d0
 
-end function init
+end subroutine setup
 
 
 
@@ -105,18 +105,32 @@ end subroutine matvec
 
 
 !--------------------------------------------------------------------------!
-subroutine c_init(a_ptr,rows,cols) bind(c)                                 !
+subroutine c_matrix(ptr) bind(c)                                           !
 !--------------------------------------------------------------------------!
     implicit none
-    type(c_ptr), intent(out) :: a_ptr
+    type(c_ptr), intent(out) :: ptr
+    type(matrix), pointer :: A
+
+    allocate(A)
+    ptr = c_loc(A)
+
+end subroutine c_matrix
+
+
+
+!--------------------------------------------------------------------------!
+subroutine c_setup(a_ptr,rows,cols) bind(c)                                !
+!--------------------------------------------------------------------------!
+    implicit none
+    type(c_ptr), intent(in) :: a_ptr
     integer(c_int), intent(in), value :: rows,cols
     type(matrix), pointer :: A
 
     allocate(A)
-    A = init(rows,cols)
-    a_ptr = c_loc(A)
+    call c_f_pointer(a_ptr,A)
+    call setup(A,rows,cols)
 
-end subroutine c_init
+end subroutine c_setup
 
 
 
@@ -127,11 +141,11 @@ subroutine c_get_val(val,a_ptr,i,j) bind(c)                                !
     real(c_double), intent(out) :: val
     type(c_ptr), intent(in) :: a_ptr
     integer(c_int), intent(in), value :: i,j
-    type(matrix), pointer :: a_fptr
+    type(matrix), pointer :: A
 
-    allocate(a_fptr)
-    call c_f_pointer(a_ptr,a_fptr)
-    val = a_fptr%get_val(i+1,j+1)
+    allocate(A)
+    call c_f_pointer(a_ptr,A)
+    val = A%get_val(i+1,j+1)
 
 end subroutine c_get_val
 
@@ -144,11 +158,11 @@ subroutine c_set_val(a_ptr,val,i,j) bind(c)                                !
     type(c_ptr), intent(in) :: a_ptr
     real(c_double), intent(in), value :: val
     integer(c_int), intent(in), value :: i,j
-    type(matrix), pointer :: a_fptr
+    type(matrix), pointer :: A
 
-    allocate(a_fptr)
-    call c_f_pointer(a_ptr,a_fptr)
-    call a_fptr%set_val(i+1,j+1,val)
+    allocate(A)
+    call c_f_pointer(a_ptr,A)
+    call A%set_val(i+1,j+1,val)
 
 end subroutine c_set_val
 
@@ -161,11 +175,11 @@ subroutine c_add_val(a_ptr,val,i,j) bind(c)                                !
     type(c_ptr), intent(in) :: a_ptr
     real(c_double), intent(in), value :: val
     integer(c_int), intent(in), value :: i,j
-    type(matrix), pointer :: a_fptr
+    type(matrix), pointer :: A
 
-    allocate(a_fptr)
-    call c_f_pointer(a_ptr,a_fptr)
-    call a_fptr%add_val(i+1,j+1,val)
+    allocate(A)
+    call c_f_pointer(a_ptr,A)
+    call A%add_val(i+1,j+1,val)
 
 end subroutine c_add_val
 

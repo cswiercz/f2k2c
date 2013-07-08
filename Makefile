@@ -1,23 +1,42 @@
+###############################################################################
+# f2c Makefile
+###############################################################################
+TARGETS=ftest ctest
+FTESTOBJS=matrices.o ftest.o
+CTESTOBJS=matrices.o ctest.o
+
 .SECONDARY=
 .PHONY=clean
 
 FC=gfortran
 CC=gcc
 
-matrices.o: matrices.f90
-	$(FC) -c matrices.f90 -g -fbounds-check
+FFLAGS=-g -fbounds-check
+CFLAGS=-g -fbounds-check
+LFLAGS=
 
-ftest.o: ftest.f90
-	$(FC) -c ftest.f90 -g -fbounds-check
+CLIBS=-lgfortran
+CLIBDIRS=-L/usr/local/gfortran/lib
 
-ftest: matrices.o matrices_c_interface.o ftest.o
-	$(FC) -o ftest matrices.o matrices_c_interface.o ftest.o -g -fbounds-check
 
-ctest.o: ctest.c
-	$(CC) -c ctest.c -g -fbounds-check
+default: ctest
+	@echo "[f2c] Make complete."
 
-ctest: matrices.o ctest.o
-	$(CC) -o ctest matrices.o ctest.o -lgfortran -g -fbounds-check
+%.o: %.f90
+	$(FC) $(FFLAGS) -c $< -o $@
+
+%.o: $.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+ftest: $(FTESTOBJS)
+	@echo "[f2c] Fortran program test..."
+	$(FC) $(FFLAGS) $(FTESTOBJS) -o $@
+	@echo "[f2c] ...done."
+
+ctest: $(CTESTOBJS)
+	@echo "[f2c] Creating C program test..."
+	$(CC) $(CLIBDIRS) $(CLIBS) $(CFLAGS) $(CTESTOBJS) -o $@
+	@echo "[f2c] ...done."
 
 clean:
-	rm -f *.o *.mod ftest
+	-rm -f *~ *.o *.mod $(TARGETS)

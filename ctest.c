@@ -19,7 +19,7 @@ int main(int *argc, char *argv) {
         for (i=0; i<10; i++){
             c_get_val(&val,&a_ptr,i,j);
             if (val!=0.0) {
-                printf("Entry %d %d is not zero!\n",i,j);
+                printf("A(%d,%d)=%lf, should be zero!\n",i,j,val);
             }
         }
     }
@@ -43,5 +43,24 @@ int main(int *argc, char *argv) {
         }
     }
 
+
+    // Multiply the matrix by a vector
+    double *x = (double *)malloc( 10 * sizeof(double) );
+    double *y = (double *)malloc( 10 * sizeof(double) );
+    for (i=0; i<10; i++) {
+        x[i] = 1.0;
+        y[i] = 0.0;
+    }
+
+    c_matvec(&a_ptr,x,y,10,10);
+
+    for (i=0; i<10; i++) {
+        printf("%lf\n",y[i]);
+    }
+
     return 0;
 }
+
+
+
+

@@ -185,5 +185,24 @@ end subroutine c_add_val
 
 
 
+!--------------------------------------------------------------------------!
+subroutine c_matvec(a_ptr,x,y,m,n) bind(c)                                 !
+!--------------------------------------------------------------------------!
+    implicit none
+    type(c_ptr), intent(in) :: a_ptr
+    real(c_double), intent(in) :: x(n)
+    real(c_double), intent(out) :: y(m)
+    integer(c_int), intent(in), value :: m,n
+    type(matrix), pointer :: A
+
+    allocate(A)
+    call c_f_pointer(a_ptr,A)
+    call A%matvec(x,y)
+
+
+end subroutine c_matvec
+
+
+
 
 end module matrices

@@ -17,8 +17,8 @@ import re
 
 # regular expressions for finding key Fortran components: procedures (functions
 # and subroutines) and for parsing arguments
-interesting = re.compile('function|subroutine|type|class')
-function_type = re.compile('.+(?=\sfunction)') # [XXX] also finds 'end's
+interesting = re.compile('(?<!end )(function|subroutine|type|class)')
+function_type = re.compile('.+(?=\sfunction)')
 
 
 class FortranParseError(Exception):
@@ -73,6 +73,8 @@ class FortranParser(markupbase.ParserBase):
         Call this as often as you want with as little or as much text as you
         want. (Text may include '\n'.)
         """
+        data = self.filter(data)
+
         self.rawdata = self.rawdata + data
         self.goahead(0)
 
@@ -80,11 +82,19 @@ class FortranParser(markupbase.ParserBase):
         """
         Handle and buffered data.
         """
-        self.goahead(1)
+        #self.goahead(1)
+        pass
+
 
     def error(self, message):
         raise FortranParseError(message, self.getpos())
 
+    def filter(self, data):
+        """
+        Filter the incoming data.
+        """
+        data = data.lower()
+        return data
 
     # Internal -- handle data as far as reasonable. May leave state and data to
     # be processed by a subsequent call. If 'end' is true, forse handling all
@@ -100,25 +110,42 @@ class FortranParser(markupbase.ParserBase):
             # type, or class. If no matches are found, go to EOF.
             match = self.interesting.search(rawdata,i)
             if match:
+                # determine what kind of FORTRAN object we found and parse
+                # accordingly (following the syntax of HTMLParser)
                 j = match.start()
-                print "match found at character %d" % j
+                i = self.updatepos(i,j)
+                startswith = rawdata.startswith
+                print rawdata[j:match.end()]
+                if startswith('t',j):
+                    j = self.parse_custom_type(j)
+                elif startswith('c',j):
+                    j = self.parse_class(j)
+                elif startswith('f',j) or startswith('s',j):
+                    j = self.parse_procedure(j)
+                else:
+                    raise FortranParseError('Encountered unknown FORTRAN ' + \
+                          'object: %s' % rawdata[j:match.end()])
             else:
                 j = n
 
-            # temporary position update
-            if i < j:
-                i = self.updatepos(i,j)
-            else:
-                i = self.updatepos(i,i+1)
+            # update position
+            if i < j: i = self.updatepos(i,j)
+            else:     i = self.updatepos(i,i+1)
             if i == n: break
 
-    def parse_function_header(self):
-        pass
+    def parse_procedure(self,j):
+        rawdata = self.rawdata:
+        startswith = rawdata.startswith
 
-    def parse_subroutine_header(self):
-        pass
+        # if the procedure is a function then grab the function type
+        if startswith('f',c):
+            pass
 
-    def parse_attributes(self):
+    def parse_attributes(self,attribute_list):
+        """
+        Parse the attributes of the function / subroutine header and
+        explore the body to determine type.
+        """
         pass
 
 

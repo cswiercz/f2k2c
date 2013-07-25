@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-f2c
+f2k2c
 
 A script for auto-building c-wrappers of Fortran 90 code.
 
@@ -182,7 +182,7 @@ class Subroutine(Procedure):
 
 
 if __name__=='__main__':
-    print('=== f2c.py Testing ===')
+    print('=== f2k2c.py Testing ===')
     # test an example
     f = open('examples/simple/simple.f90')
     s = f.read()

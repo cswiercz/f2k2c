@@ -8,7 +8,6 @@ program ftest
     integer :: rows,cols,i,j
     real(kind(1d0)) :: val
 
-
     rows = 10
     cols = 10
     A = init(rows,cols)

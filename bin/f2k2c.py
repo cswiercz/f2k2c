@@ -15,10 +15,13 @@ TODO
 import markupbase
 import re
 
-# regular expressions for finding key Fortran components: procedures (functions
-# and subroutines) and for parsing arguments
+# regular expressions for finding key Fortran components: procedures
+# (functions and subroutines) and for parsing arguments
 interesting = re.compile('(?<!end )(function|subroutine|type|class)')
+interesting_end = re.compile('(?<=end )(function|subroutine|type|class)')
+argument_list = re.compile('(?<=\().*(?=\\))')
 function_type = re.compile('.+(?=\sfunction)')
+variable_type_line = re.compile('.*::.*') # won't work on multi-line
 
 
 class FortranParseError(Exception):
@@ -70,8 +73,8 @@ class FortranParser(markupbase.ParserBase):
         r"""
         Feed data to the parser.
 
-        Call this as often as you want with as little or as much text as you
-        want. (Text may include '\n'.)
+        Call this as often as you want with as little or as much text as
+        you want. (Text may include '\n'.)
         """
         data = self.filter(data)
 
@@ -115,6 +118,8 @@ class FortranParser(markupbase.ParserBase):
                 j = match.start()
                 i = self.updatepos(i,j)
                 startswith = rawdata.startswith
+
+                print "\n=== New Interesting ==="
                 print rawdata[j:match.end()]
                 if startswith('t',j):
                     j = self.parse_custom_type(j)
@@ -133,20 +138,59 @@ class FortranParser(markupbase.ParserBase):
             else:     i = self.updatepos(i,i+1)
             if i == n: break
 
-    def parse_procedure(self,j):
-        rawdata = self.rawdata:
+    def parse_procedure(self,i):
+        rawdata = self.rawdata
         startswith = rawdata.startswith
 
         # if the procedure is a function then grab the function type
-        if startswith('f',c):
+        if startswith('f',i):
             pass
 
-    def parse_attributes(self,attribute_list):
+        # obtain argument lsit
+        match = argument_list.search(rawdata,i)
+        if match:
+            start,end = match.start(), match.end()
+            argument_names = rawdata[start:end].split(',')
+
+            # determine the argument / attribute types by parsing the
+            # rest of the code
+            print "all arguments: ", argument_names
+            arguments = self.parse_arguments(i,argument_names)
+
+        return i+1
+
+    def parse_arguments(self,i,argument_names):
         """
         Parse the attributes of the function / subroutine header and
         explore the body to determine type.
         """
-        pass
+        rawdata = self.rawdata
+
+        # find end of procedure / type / class
+        end_match = interesting_end.search(rawdata,i)
+        n = end_match.end()
+        while i < n:
+            match = variable_type_line.search(rawdata,i)
+
+            # we found a line of the form
+            #
+            # (variable identifiers) :: (variable,names)
+            #
+            # parse out the identifiers and apply to the variable names
+            if match:
+                start,end = match.start(), match.end()
+                identifiers, variables = map(lambda s: s.strip().split(','),
+                                             rawdata[start:end].split('::'))
+
+                print "\nline:      ", rawdata[start:end]
+                print "identifiers: ", identifiers
+                print "variables:   ", variables
+
+            if i < end: i = self.updatepos(i,end)
+            else:       i = self.updatepos(i,i+1)
+            if i == n: break
+
+        return None
 
 
 class Argument(object):
